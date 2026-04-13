@@ -13,11 +13,15 @@ import random
 from abc import ABC, abstractmethod
 from typing import Any, TypeAlias
 
+import torch
+
 from src.game.action import Action
 from src.game.action import ActionType
 from src.game.view.fsm import ViewFSM
 from src.game.view.state import ViewGameState
-
+from src.rl.action_space.masks import get_masks
+from src.rl.encoding.state import encode_batch_view_game_state
+from src.rl.models.actor_critic import ActorCritic
 
 SelectActionMetadata: TypeAlias = dict[str, Any]
 
@@ -130,3 +134,37 @@ class PolicyRandom(PolicyBase):
             )
 
         return Action(ActionType.COMBAT_TURN_END), {}
+
+
+class PolicySoftmax(PolicyBase):
+    def __init__(
+        self,
+        model: ActorCritic,
+        device: torch.device,
+        greedy: bool = False,
+    ):
+        self.model = model.to(device)
+        self.model.eval()
+        self._device = device
+        self._greedy = greedy
+
+    def select_action(self, view_game_state: ViewGameState) -> tuple[Action, SelectActionMetadata]:
+        x_game_state = encode_batch_view_game_state([view_game_state], self._device)
+        primary_mask, secondary_masks = get_masks(view_game_state, self._device)
+
+        with torch.no_grad():
+            output = self.model.forward_single(
+                x_game_state,
+                primary_mask,
+                secondary_masks,
+                sample=not self._greedy,
+            )
+
+        action = output.to_action()
+        metadata = {
+            "action_choice": output.action_choice.name,
+            "secondary_index": output.secondary_index,
+            "log_prob": output.log_prob,
+            "value": output.value,
+        }
+        return action, metadata

@@ -1,7 +1,7 @@
 exp_name: ppo/test_new_grp
 num_episodes: 1.0e+6
 log_every: 10
-save_every: 100
+save_every: 10
 gamma: 0.99
 lam: 0.95
 coef_value: 0.500

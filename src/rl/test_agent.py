@@ -213,6 +213,12 @@ def run_game(
     help="Path to the experiment directory",
 )
 @click.option(
+    "--checkpoint",
+    default=None,
+    type=str,
+    help="Checkpoint filename inside exp-path (e.g. model_3610.pth). Defaults to model.pth.",
+)
+@click.option(
     "--delay",
     default=0.3,
     type=float,
@@ -247,6 +253,7 @@ def run_game(
 )
 def main(
     exp_path: str,
+    checkpoint: str | None,
     delay: float,
     device: str,
     num_games: int,
@@ -258,7 +265,8 @@ def main(
     # Load config and model
     config = load_config(f"{exp_path}/config.yml")
     model = ActorCritic(**config["model"])
-    model.load_state_dict(torch.load(f"{exp_path}/model.pth", weights_only=True))
+    ckpt_name = checkpoint or "model.pth"
+    model.load_state_dict(torch.load(f"{exp_path}/{ckpt_name}", weights_only=True))
     model.eval()
 
     device = torch.device(device)

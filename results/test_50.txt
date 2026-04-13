@@ -1,0 +1,55 @@
+Loaded model from experiments/ppo/test_new_grp
+Game 1: Floor 14, Health 0
+Game 2: Floor 50, Health 53
+Game 3: Floor 50, Health 54
+Game 4: Floor 50, Health 63
+Game 5: Floor 50, Health 48
+Game 6: Floor 50, Health 64
+Game 7: Floor 50, Health 61
+Game 8: Floor 50, Health 56
+Game 9: Floor 50, Health 47
+Game 10: Floor 50, Health 61
+Game 11: Floor 50, Health 61
+Game 12: Floor 45, Health 0
+Game 13: Floor 50, Health 42
+Game 14: Floor 50, Health 55
+Game 15: Floor 50, Health 69
+Game 16: Floor 50, Health 46
+Game 17: Floor 50, Health 52
+Game 18: Floor 50, Health 51
+Game 19: Floor 50, Health 66
+Game 20: Floor 50, Health 53
+Game 21: Floor 50, Health 70
+Game 22: Floor 50, Health 47
+Game 23: Floor 50, Health 54
+Game 24: Floor 50, Health 69
+Game 25: Floor 50, Health 57
+Game 26: Floor 50, Health 47
+Game 27: Floor 50, Health 64
+Game 28: Floor 50, Health 69
+Game 29: Floor 50, Health 66
+Game 30: Floor 50, Health 56
+Game 31: Floor 50, Health 46
+Game 32: Floor 50, Health 49
+Game 33: Floor 50, Health 67
+Game 34: Floor 50, Health 68
+Game 35: Floor 50, Health 59
+Game 36: Floor 50, Health 55
+Game 37: Floor 50, Health 52
+Game 38: Floor 50, Health 37
+Game 39: Floor 50, Health 55
+Game 40: Floor 50, Health 60
+Game 41: Floor 50, Health 55
+Game 42: Floor 50, Health 43
+Game 43: Floor 50, Health 63
+Game 44: Floor 50, Health 19
+Game 45: Floor 50, Health 61
+Game 46: Floor 50, Health 59
+Game 47: Floor 50, Health 60
+Game 48: Floor 50, Health 55
+Game 49: Floor 50, Health 18
+Game 50: Floor 50, Health 45
+
+--- Summary (50 games) ---
+Average Floor: 49.2
+Average Final Health: 52.5

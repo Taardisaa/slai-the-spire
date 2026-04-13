@@ -4,14 +4,17 @@ Master process for PPO training with parallel workers.
 Coordinates multiple worker processes, collects trajectories, and updates the model.
 """
 
+import glob
 import os
 import random
+import re
 import shutil
 from collections import deque
 from dataclasses import dataclass, field
 from multiprocessing.connection import Connection
 from typing import Iterator
 
+import click
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -680,6 +683,7 @@ def train(
     max_grad_norm: float,
     num_envs: int,
     device: torch.device,
+    start_episode: int = 0,
 ) -> None:
     """Main training loop."""
     writer = SummaryWriter(f"experiments/{exp_name}")
@@ -692,7 +696,7 @@ def train(
         p.start()
 
     try:
-        for episode in range(num_episodes):
+        for episode in range(start_episode, num_episodes):
             coef_entropy = coefs_entropy[episode]
 
             # Collect trajectories
@@ -743,7 +747,7 @@ def train(
 
             # Save
             if episode % save_every == 0:
-                torch.save(model.state_dict(), f"experiments/{exp_name}/model.pth")
+                torch.save(model.state_dict(), f"experiments/{exp_name}/model_{episode}.pth")
 
     finally:
         for conn in conn_parents:
@@ -754,7 +758,30 @@ def train(
     writer.close()
 
 
-if __name__ == "__main__":
+def _find_latest_checkpoint(exp_dir: str) -> str | None:
+    """Return path to model_<N>.pth with the largest N in exp_dir, or None."""
+    candidates = glob.glob(os.path.join(exp_dir, "model_*.pth"))
+    best: tuple[int, str] | None = None
+    for path in candidates:
+        m = re.match(r"model_(\d+)\.pth$", os.path.basename(path))
+        if m is None:
+            continue
+        ep = int(m.group(1))
+        if best is None or ep > best[0]:
+            best = (ep, path)
+    return None if best is None else best[1]
+
+
+@click.command()
+@click.option(
+    "--resume-from",
+    "resume_from",
+    default=None,
+    type=str,
+    help="Checkpoint path to resume from. If omitted, resumes from the latest model_*.pth "
+    "in experiments/<exp_name>/ when present, otherwise starts fresh.",
+)
+def main(resume_from: str | None) -> None:
     config_path = "src/rl/algorithms/actor_critic/config.yml"
     config = load_config(config_path)
 
@@ -766,8 +793,19 @@ if __name__ == "__main__":
     optimizer = init_optimizer(config["optimizer"]["name"], model, **config["optimizer"]["kwargs"])
 
     # Create experiment directory
-    os.makedirs(f"experiments/{config['exp_name']}", exist_ok=True)
-    shutil.copy(config_path, f"experiments/{config['exp_name']}/config.yml")
+    exp_dir = f"experiments/{config['exp_name']}"
+    os.makedirs(exp_dir, exist_ok=True)
+    shutil.copy(config_path, f"{exp_dir}/config.yml")
+
+    # Resolve resume checkpoint
+    if resume_from is None:
+        resume_from = _find_latest_checkpoint(exp_dir)
+    start_episode = 0
+    if resume_from is not None:
+        model.load_state_dict(torch.load(resume_from, map_location="cpu"))
+        m = re.match(r"model_(\d+)\.pth$", os.path.basename(resume_from))
+        start_episode = int(m.group(1)) + 1 if m else 0
+        print(f"Resuming from {resume_from} at episode {start_episode}")
 
     # Entropy schedule
     coefs_entropy = _get_entropy_schedule(
@@ -797,4 +835,9 @@ if __name__ == "__main__":
         config["max_grad_norm"],
         config["num_envs"],
         torch.device("cpu"),
+        start_episode=start_episode,
     )
+
+
+if __name__ == "__main__":
+    main()

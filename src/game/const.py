@@ -11,7 +11,7 @@ MAX_SIZE_DRAW_PILE = MAX_SIZE_DECK  # TODO: this is dynamic
 MAX_SIZE_DISC_PILE = MAX_SIZE_DECK  # TODO: this is dynamic
 
 # Map dimensions
-MAP_HEIGHT = 15
+MAP_HEIGHT = 50
 MAP_WIDTH = 7
 
 # Number of cards per combat reward TODO: "Question Card" relic modifies this
